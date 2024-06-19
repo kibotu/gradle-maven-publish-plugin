@@ -32,6 +32,7 @@ internal abstract class SonatypeRepositoryBuildService :
 
   internal interface Params : BuildServiceParameters {
     val sonatypeHost: Property<SonatypeHost>
+    val stagingProfileId: Property<String>
     val groupId: Property<String>
     val versionIsSnapshot: Property<Boolean>
     val repositoryUsername: Property<String>
@@ -122,7 +123,7 @@ internal abstract class SonatypeRepositoryBuildService :
     uploadId = if (parameters.sonatypeHost.get().isCentralPortal) {
       UUID.randomUUID().toString()
     } else {
-      nexus.createRepositoryForGroup(parameters.groupId.get())
+      nexus.createRepositoryForGroup(parameters.groupId.get(), parameters.stagingProfileId.get())
     }
 
     endOfBuildActions += EndOfBuildAction.Close(searchForRepositoryIfNoIdPresent = false)
@@ -325,6 +326,7 @@ internal abstract class SonatypeRepositoryBuildService :
       automaticRelease: Boolean,
       rootBuildDirectory: Provider<Directory>,
     ): Provider<SonatypeRepositoryBuildService> {
+      val profileId = project.providers.gradleProperty("SONATYPE_STAGING_PROFILE_ID")
       val okhttpTimeout = project.providers.gradleProperty("SONATYPE_CONNECT_TIMEOUT_SECONDS")
         .map { it.toLong() }
         .orElse(60)
@@ -334,6 +336,7 @@ internal abstract class SonatypeRepositoryBuildService :
       val service = gradle.sharedServices.registerIfAbsent(NAME, SonatypeRepositoryBuildService::class.java) {
         it.maxParallelUsages.set(1)
         it.parameters.sonatypeHost.set(sonatypeHost)
+        it.parameters.stagingProfileId.set(profileId)
         it.parameters.groupId.set(groupId)
         it.parameters.versionIsSnapshot.set(versionIsSnapshot)
         it.parameters.repositoryUsername.set(repositoryUsername)

@@ -80,10 +80,10 @@ class Nexus(
     return candidateProfiles[0]
   }
 
-  private fun createStagingRepository(group: String, profile: StagingProfile): String {
-    println("Creating repository in profile: ${profile.name}")
+  private fun createStagingRepository(group: String, profileId: String): String {
+    println("Creating repository in profile with id: $profileId")
 
-    val response = service.createRepository(profile.id, CreateRepositoryInput(CreateRepositoryInputData("Repository for $group"))).execute()
+    val response = service.createRepository(profileId, CreateRepositoryInput(CreateRepositoryInputData("Repository for $group"))).execute()
     if (!response.isSuccessful) {
       throw IOException("Cannot create repository: ${response.errorBody()?.string()}")
     }
@@ -95,9 +95,9 @@ class Nexus(
     return id
   }
 
-  fun createRepositoryForGroup(group: String): String {
-    val profile = findStagingProfile(group)
-    return createStagingRepository(group, profile)
+  fun createRepositoryForGroup(group: String, profileId: String): String {
+    // val profile = findStagingProfile(group)
+    return createStagingRepository(group, profileId)
   }
 
   private fun getProfileRepositories(): List<Repository>? {
